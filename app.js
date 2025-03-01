@@ -1,6 +1,6 @@
 // Constants and configuration
 const API_BASE_URL = 'https://api.coingecko.com/api/v3';
-const COIN_COUNT = 5; // Number of coins to display per category
+const COIN_COUNT = 6; // Number of coins to display per category
 const CATEGORY_IDS = {
     crypto: '', // Default market
     ai: 'artificial-intelligence',
@@ -9,18 +9,22 @@ const CATEGORY_IDS = {
     gaming: 'gaming',
     stablecoins: 'stablecoins'
 };
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+const FORCE_CACHE_ON_RATE_LIMIT = true; // Use cached data even if expired when rate limited
 
 // DOM Elements
 const themeIcon = document.getElementById('theme-icon');
 const lastUpdatedEl = document.getElementById('last-updated');
 
 // State
-let currentTheme = localStorage.getItem('theme') || 'light';
+let currentTheme = localStorage.getItem('theme') || 'dark';
 let apiCache = JSON.parse(localStorage.getItem('apiCache')) || {};
 let apiQueue = [];
 let isProcessingQueue = false;
-const API_RATE_LIMIT_DELAY = 1500; // 1.5 seconds between API calls
+const API_RATE_LIMIT_DELAY = 2000; // 2 seconds between API calls
+let rateLimitHit = false;
+let lastRateLimitTime = 0;
+const RATE_LIMIT_COOLDOWN = 60 * 1000; // 1 minute cooldown after rate limit
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -36,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     queueApiCall(() => fetchTrendingCoins());
-    queueApiCall(() => fetchRecentlyAddedCoins());
     
     // Set last updated time
     updateLastUpdatedTime();
@@ -73,10 +76,15 @@ function processApiQueue() {
 }
 
 // Cache functions
-function getCachedData(key) {
+function getCachedData(key, allowExpired = false) {
     const cachedItem = apiCache[key];
-    if (cachedItem && (Date.now() - cachedItem.timestamp) < CACHE_DURATION) {
-        return cachedItem.data;
+    if (cachedItem) {
+        const isExpired = (Date.now() - cachedItem.timestamp) >= CACHE_DURATION;
+        
+        // Return cached data if not expired or if we're allowing expired data
+        if (!isExpired || allowExpired) {
+            return cachedItem.data;
+        }
     }
     return null;
 }
@@ -86,39 +94,68 @@ function setCachedData(key, data) {
         timestamp: Date.now(),
         data: data
     };
+    
     // Save to localStorage (but be mindful of size limits)
     try {
+        // First, check if we're approaching localStorage limits
+        const cacheString = JSON.stringify(apiCache);
+        if (cacheString.length > 4000000) { // ~4MB limit in most browsers
+            // If cache is too large, remove oldest entries
+            pruneCache();
+        }
+        
         localStorage.setItem('apiCache', JSON.stringify(apiCache));
     } catch (e) {
-        console.warn('Failed to save cache to localStorage. Clearing cache.', e);
-        apiCache = {};
-        localStorage.removeItem('apiCache');
+        console.warn('Failed to save cache to localStorage. Pruning cache.', e);
+        pruneCache(true); // Aggressive pruning
+        try {
+            localStorage.setItem('apiCache', JSON.stringify(apiCache));
+        } catch (e) {
+            console.error('Still unable to save cache after pruning. Clearing cache.', e);
+            apiCache = {};
+            localStorage.removeItem('apiCache');
+        }
     }
 }
 
-function loadCachedData() {
-    // Try to load data from cache first
-    const globalData = getCachedData('global');
-    if (globalData) {
-        updateGlobalMarketUI(globalData);
-    }
+function pruneCache(aggressive = false) {
+    // Get all cache keys and their timestamps
+    const cacheEntries = Object.entries(apiCache).map(([key, value]) => ({
+        key,
+        timestamp: value.timestamp
+    }));
     
-    Object.keys(CATEGORY_IDS).forEach(category => {
-        const categoryData = getCachedData(`category_${category}`);
-        if (categoryData) {
-            updateCoinTableUI(category, categoryData);
-        }
+    // Sort by timestamp (oldest first)
+    cacheEntries.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Remove oldest entries until we're under the limit
+    const removeCount = aggressive ? Math.ceil(cacheEntries.length * 0.5) : Math.ceil(cacheEntries.length * 0.25);
+    
+    cacheEntries.slice(0, removeCount).forEach(entry => {
+        delete apiCache[entry.key];
     });
     
-    const trendingData = getCachedData('trending');
-    if (trendingData) {
-        updateTrendingCoinsUI(trendingData);
+    console.log(`Pruned ${removeCount} cache entries`);
+}
+
+function checkRateLimit() {
+    // If we've hit a rate limit recently, use cached data for a while
+    if (rateLimitHit) {
+        const timeSinceRateLimit = Date.now() - lastRateLimitTime;
+        if (timeSinceRateLimit < RATE_LIMIT_COOLDOWN) {
+            return true; // Still in cooldown period
+        } else {
+            rateLimitHit = false; // Cooldown period over
+            return false;
+        }
     }
-    
-    const recentlyAddedData = getCachedData('recently_added');
-    if (recentlyAddedData) {
-        updateRecentlyAddedUI(recentlyAddedData);
-    }
+    return false;
+}
+
+function setRateLimitHit() {
+    rateLimitHit = true;
+    lastRateLimitTime = Date.now();
+    console.warn('Rate limit hit, using cached data for the next minute');
 }
 
 // Theme functions
@@ -144,16 +181,12 @@ function toggleTheme() {
 function formatNumber(num, maximumFractionDigits = 2) {
     if (num === null || num === undefined) return 'N/A';
     
-    if (num >= 1e12) {
-        return (num / 1e12).toLocaleString(undefined, { maximumFractionDigits }) + 'T';
-    } else if (num >= 1e9) {
+    if (Math.abs(num) >= 1e9) {
         return (num / 1e9).toLocaleString(undefined, { maximumFractionDigits }) + 'B';
-    } else if (num >= 1e6) {
+    } else if (Math.abs(num) >= 1e6) {
         return (num / 1e6).toLocaleString(undefined, { maximumFractionDigits }) + 'M';
-    } else if (num >= 1e3) {
+    } else if (Math.abs(num) >= 1e3) {
         return (num / 1e3).toLocaleString(undefined, { maximumFractionDigits }) + 'K';
-    } else if (num < 0.01 && num > 0) {
-        return num.toLocaleString(undefined, { maximumSignificantDigits: 4 });
     } else {
         return num.toLocaleString(undefined, { maximumFractionDigits });
     }
@@ -163,9 +196,13 @@ function formatPrice(price) {
     if (price === null || price === undefined) return 'N/A';
     
     if (price < 0.01) {
-        return '$' + price.toLocaleString(undefined, { maximumSignificantDigits: 4 });
+        return `<span class="coin-price">$${price.toFixed(6)}</span>`;
+    } else if (price < 1) {
+        return `<span class="coin-price">$${price.toFixed(4)}</span>`;
+    } else if (price < 10) {
+        return `<span class="coin-price">$${price.toFixed(2)}</span>`;
     } else {
-        return '$' + price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `<span class="coin-price">$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>`;
     }
 }
 
@@ -181,22 +218,44 @@ function formatPercentage(percentage) {
 
 function updateLastUpdatedTime() {
     const now = new Date();
-    lastUpdatedEl.textContent = now.toLocaleString();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    lastUpdatedEl.textContent = `Last updated: ${timeString}`;
 }
 
 // API functions
 async function fetchWithRetry(url, retries = 3, delay = 1000) {
-    // Check cache first
-    const cachedData = getCachedData(url);
+    // Check if we're in rate limit cooldown
+    const isRateLimited = checkRateLimit();
+    
+    // Check cache first (allow expired data if rate limited)
+    const cachedData = getCachedData(url, isRateLimited);
     if (cachedData) {
         return cachedData;
     }
     
+    // If we're rate limited but don't have any cached data, we still need to try the API
     let lastError;
     
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url);
+            
+            // Check for rate limiting response
+            if (response.status === 429) {
+                console.warn('Rate limit exceeded');
+                setRateLimitHit();
+                
+                // Try to use expired cache data as fallback
+                if (FORCE_CACHE_ON_RATE_LIMIT) {
+                    const expiredCache = getCachedData(url, true);
+                    if (expiredCache) {
+                        console.log('Using expired cache data due to rate limit');
+                        return expiredCache;
+                    }
+                }
+                
+                throw new Error('Rate limit exceeded');
+            }
             
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -211,6 +270,15 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
         } catch (error) {
             console.error(`Attempt ${i + 1} failed:`, error);
             lastError = error;
+            
+            // If we hit a rate limit, use any available cached data even if expired
+            if (error.message.includes('Rate limit') && FORCE_CACHE_ON_RATE_LIMIT) {
+                const expiredCache = getCachedData(url, true);
+                if (expiredCache) {
+                    console.log('Using expired cache data due to rate limit');
+                    return expiredCache;
+                }
+            }
             
             if (i < retries - 1) {
                 // Wait before retrying, with exponential backoff
@@ -236,7 +304,6 @@ async function fetchGlobalMarketData() {
 function updateGlobalMarketUI(globalData) {
     const data = globalData.data;
     document.getElementById('total-market-cap').textContent = formatNumber(data.total_market_cap.usd);
-    document.getElementById('market-cap-change').innerHTML = formatPercentage(data.market_cap_change_percentage_24h_usd);
     document.getElementById('total-volume').textContent = formatNumber(data.total_volume.usd);
     document.getElementById('btc-dominance').textContent = formatNumber(data.market_cap_percentage.btc, 1) + '%';
     document.getElementById('active-coins').textContent = formatNumber(data.active_cryptocurrencies);
@@ -255,7 +322,7 @@ async function fetchCoinsByCategory(category) {
     } catch (error) {
         console.error(`Error fetching ${category} coins:`, error);
         const tableBodyId = `${category}-table-body`;
-        document.getElementById(tableBodyId).innerHTML = '<tr><td colspan="4" class="text-center text-danger">Failed to load data. Please try again later.</td></tr>';
+        document.getElementById(tableBodyId).innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load data. Please try again later.</td></tr>';
     }
 }
 
@@ -266,7 +333,7 @@ function updateCoinTableUI(category, coins) {
     if (!tableBody) return;
     
     if (coins.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No coins found in this category.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No coins found in this category.</td></tr>';
         return;
     }
     
@@ -278,7 +345,6 @@ function updateCoinTableUI(category, coins) {
         row.addEventListener('click', () => showCoinDetails(coin.id));
         
         row.innerHTML = `
-            <td>${index + 1}</td>
             <td>
                 <div class="d-flex align-items-center">
                     <img src="${coin.image}" alt="${coin.name}" class="coin-image">
@@ -288,7 +354,7 @@ function updateCoinTableUI(category, coins) {
                     </div>
                 </div>
             </td>
-            <td>${formatPrice(coin.current_price)}</td>
+            <td class="coin-price">${formatPrice(coin.current_price)}</td>
             <td>${formatPercentage(coin.price_change_percentage_24h)}</td>
         `;
         
@@ -299,20 +365,33 @@ function updateCoinTableUI(category, coins) {
 async function fetchTrendingCoins() {
     try {
         const data = await fetchWithRetry(`${API_BASE_URL}/search/trending`);
-        setCachedData('trending', data);
-        updateTrendingCoinsUI(data);
+        
+        // Get trending coin IDs to fetch price data
+        const coinIds = data.coins.slice(0, 6).map(item => item.item.id).join(',');
+        
+        // Fetch price data for trending coins
+        const priceData = await fetchWithRetry(`${API_BASE_URL}/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=6&page=1&sparkline=false&price_change_percentage=24h`);
+        
+        // Combine trending data with price data
+        const combinedData = {
+            coins: data.coins,
+            priceData: priceData
+        };
+        
+        setCachedData('trending', combinedData);
+        updateTrendingCoinsUI(combinedData);
     } catch (error) {
         console.error('Error fetching trending coins:', error);
         document.getElementById('trending-coins').innerHTML = '<p class="text-center text-danger">Failed to load trending coins. Please try again later.</p>';
     }
 }
 
-function updateTrendingCoinsUI(trendingCoins) {
+function updateTrendingCoinsUI(trendingData) {
     const trendingCoinsEl = document.getElementById('trending-coins');
     
     if (!trendingCoinsEl) return;
     
-    if (!trendingCoins.coins || trendingCoins.coins.length === 0) {
+    if (!trendingData.coins || trendingData.coins.length === 0) {
         trendingCoinsEl.innerHTML = '<p class="text-center">No trending coins available.</p>';
         return;
     }
@@ -320,7 +399,7 @@ function updateTrendingCoinsUI(trendingCoins) {
     trendingCoinsEl.innerHTML = '';
     
     // Limit to 6 trending coins for compact layout
-    const coinsToShow = trendingCoins.coins.slice(0, 6);
+    const coinsToShow = trendingData.coins.slice(0, 6);
     
     coinsToShow.forEach(item => {
         const coin = item.item;
@@ -329,56 +408,28 @@ function updateTrendingCoinsUI(trendingCoins) {
         trendingCoin.setAttribute('data-coin-id', coin.id);
         trendingCoin.addEventListener('click', () => showCoinDetails(coin.id));
         
+        // Find price data for this coin
+        const priceInfo = trendingData.priceData ? trendingData.priceData.find(p => p.id === coin.id) : null;
+        const priceChange = priceInfo ? formatPercentage(priceInfo.price_change_percentage_24h) : '';
+        const price = priceInfo ? formatPrice(priceInfo.current_price) : '';
+        
+        // Use the coin's market cap rank if available, otherwise use a generic "Trending" badge
+        let trendBadge = '';
+        if (coin.market_cap_rank) {
+            trendBadge = `<span class="badge bg-primary">Rank: ${coin.market_cap_rank}</span>`;
+        } else {
+            trendBadge = `<span class="trend-badge">Trending</span>`;
+        }
+        
         trendingCoin.innerHTML = `
             <img src="${coin.small}" alt="${coin.name}">
             <div class="trending-coin-info">
-                <div class="trending-coin-name">${coin.name}</div>
-                <div class="trending-coin-price">${coin.symbol} #${coin.market_cap_rank || 'N/A'}</div>
+                <div class="trending-coin-name">${coin.name} ${trendBadge}</div>
+                <div class="trending-coin-price">${coin.symbol} ${price} ${priceChange}</div>
             </div>
         `;
         
         trendingCoinsEl.appendChild(trendingCoin);
-    });
-}
-
-async function fetchRecentlyAddedCoins() {
-    try {
-        const data = await fetchWithRetry(`${API_BASE_URL}/coins/markets?vs_currency=usd&order=created_desc&per_page=6&page=1&sparkline=false`);
-        setCachedData('recently_added', data);
-        updateRecentlyAddedUI(data);
-    } catch (error) {
-        console.error('Error fetching recently added coins:', error);
-        document.getElementById('recently-added').innerHTML = '<p class="text-center text-danger">Failed to load recently added coins. Please try again later.</p>';
-    }
-}
-
-function updateRecentlyAddedUI(coins) {
-    const recentlyAddedEl = document.getElementById('recently-added');
-    
-    if (!recentlyAddedEl) return;
-    
-    if (coins.length === 0) {
-        recentlyAddedEl.innerHTML = '<p class="text-center">No recently added coins available.</p>';
-        return;
-    }
-    
-    recentlyAddedEl.innerHTML = '';
-    
-    coins.forEach(coin => {
-        const coinEl = document.createElement('div');
-        coinEl.className = 'trending-coin';
-        coinEl.setAttribute('data-coin-id', coin.id);
-        coinEl.addEventListener('click', () => showCoinDetails(coin.id));
-        
-        coinEl.innerHTML = `
-            <img src="${coin.image}" alt="${coin.name}">
-            <div class="trending-coin-info">
-                <div class="trending-coin-name">${coin.name}</div>
-                <div class="trending-coin-price">${formatPrice(coin.current_price)}</div>
-            </div>
-        `;
-        
-        recentlyAddedEl.appendChild(coinEl);
     });
 }
 
@@ -449,5 +500,25 @@ async function showCoinDetails(coinId) {
     } catch (error) {
         console.error('Error fetching coin details:', error);
         modalBody.innerHTML = '<div class="text-center text-danger">Failed to load coin details. Please try again later.</div>';
+    }
+}
+
+function loadCachedData() {
+    // Try to load data from cache first
+    const globalData = getCachedData('global');
+    if (globalData) {
+        updateGlobalMarketUI(globalData);
+    }
+    
+    Object.keys(CATEGORY_IDS).forEach(category => {
+        const categoryData = getCachedData(`category_${category}`);
+        if (categoryData) {
+            updateCoinTableUI(category, categoryData);
+        }
+    });
+    
+    const trendingData = getCachedData('trending');
+    if (trendingData) {
+        updateTrendingCoinsUI(trendingData);
     }
 }
