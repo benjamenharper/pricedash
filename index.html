@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinGecko Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container-fluid compact-container">
+        <header class="py-1 mb-2 border-bottom">
+            <div class="container-fluid d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <img src="https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png" alt="CoinGecko Logo" height="24">
+                    <h1 class="ms-2 mb-0 fs-6">CoinGecko</h1>
+                </div>
+                <div class="theme-toggle">
+                    <i class="bi bi-moon-fill" id="theme-icon"></i>
+                </div>
+            </div>
+        </header>
+
+        <main class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-12">
+                    <div class="card market-overview">
+                        <div class="card-body py-1">
+                            <h2 class="card-title mb-1">Market Overview</h2>
+                            <div class="row" id="market-stats">
+                                <div class="col-6 col-sm-3 mb-1">
+                                    <div class="stat-card">
+                                        <h3>Market Cap</h3>
+                                        <p id="total-market-cap" class="mb-0">Loading...</p>
+                                        <span id="market-cap-change" class="change"></span>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3 mb-1">
+                                    <div class="stat-card">
+                                        <h3>24h Volume</h3>
+                                        <p id="total-volume" class="mb-0">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3 mb-1">
+                                    <div class="stat-card">
+                                        <h3>BTC Dominance</h3>
+                                        <p id="btc-dominance" class="mb-0">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-3 mb-1">
+                                    <div class="stat-card">
+                                        <h3>Active Coins</h3>
+                                        <p id="active-coins" class="mb-0">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Grid Layout (2x3) -->
+            <div class="row mb-2">
+                <!-- Top Crypto -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">Top Crypto</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="crypto-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Crypto -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">AI Crypto</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Meme Coins -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">Meme Coins</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="meme-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RWA -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">RWA</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rwa-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gaming -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">Gaming</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gaming-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stablecoins -->
+                <div class="col-md-4 mb-2">
+                    <div class="card h-100">
+                        <div class="card-header py-1 d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0 fs-6">Stablecoins</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stablecoins-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-lg-6 mb-2">
+                    <div class="card">
+                        <div class="card-body p-1">
+                            <h2 class="card-title mb-1">Trending Coins (24h)</h2>
+                            <div id="trending-coins" class="trending-list">
+                                <p class="text-center">Loading trending coins...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-2">
+                    <div class="card">
+                        <div class="card-body p-1">
+                            <h2 class="card-title mb-1">Recently Added</h2>
+                            <div id="recently-added" class="trending-list">
+                                <p class="text-center">Loading recently added coins...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer mt-auto py-1 bg-light">
+            <div class="container-fluid text-center small">
+                <span class="text-muted">Data: <a href="https://www.coingecko.com/en/api" target="_blank">CoinGecko API</a> | Last updated: <span id="last-updated"></span></span>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal fade" id="coinModal" tabindex="-1" aria-labelledby="coinModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-1">
+                    <h5 class="modal-title fs-6" id="coinModalLabel">Coin Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="coin-modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
