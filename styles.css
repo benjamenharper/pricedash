@@ -1,6 +1,7 @@
 :root {
     --primary-color: #8dc647;
     --secondary-color: #4c6ef5;
+    --headline-color: #5a6268; /* Grey color for headlines */
     --text-color: #333;
     --bg-color: #f8f9fa;
     --card-bg: #fff;
@@ -15,6 +16,7 @@
 
 [data-theme="dark"] {
     --text-color: #f8f9fa;
+    --headline-color: #adb5bd; /* Light grey for dark mode */
     --bg-color: #121212;
     --card-bg: #1e1e1e;
     --card-gradient: linear-gradient(145deg, #1e1e1e, #252525);
@@ -24,12 +26,64 @@
     --table-header-bg: #252525;
 }
 
+/* Alternative headline color options - uncomment to use */
+
+/* Blue Option */
+/*
+:root {
+    --headline-color: #4c6ef5; /* Blue */
+}
+
+[data-theme="dark"] {
+    --headline-color: #6c8eef; /* Lighter blue for dark mode */
+}
+*/
+
+/* Grey Option */
+/*
+:root {
+    --headline-color: #5a6268; /* Grey */
+}
+
+[data-theme="dark"] {
+    --headline-color: #adb5bd; /* Lighter grey for dark mode */
+}
+*/
+
+/* Purple Option */
+/*
+:root {
+    --headline-color: #7952b3; /* Purple */
+}
+
+[data-theme="dark"] {
+    --headline-color: #9c7ad1; /* Lighter purple for dark mode */
+}
+*/
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
     font-size: 0.9rem;
+}
+
+html[data-theme="dark"] body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Ensure dark theme is applied correctly */
+html[data-theme="dark"] {
+    background-color: var(--bg-color);
+}
+
+html {
+    transition: background-color 0.3s ease;
 }
 
 /* Layout spacing standardization */
@@ -38,13 +92,18 @@ header, footer {
     padding: 0.75rem 0;
 }
 
+header h1 {
+    color: var(--headline-color);
+    font-weight: 600;
+    opacity: 0.9;
+}
+
 .compact-container {
     margin: auto;
 }
 
 main {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+    padding: 0.75rem;
 }
 
 .row {
@@ -53,6 +112,11 @@ main {
 
 .row:last-child {
     margin-bottom: 0;
+}
+
+.row > [class*="col-"] {
+    padding-top: 0;
+    padding-bottom: 0;
 }
 
 .card {
@@ -85,10 +149,15 @@ main {
 }
 
 .card-title {
-    color: var(--primary-color);
+    color: var(--headline-color);
     font-weight: 600;
     margin-bottom: 0.5rem;
     font-size: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.card-header h3.card-title {
+    opacity: 0.9;
 }
 
 .stat-card {
@@ -150,12 +219,22 @@ main {
 }
 
 .coin-table th {
-    font-weight: 600;
-    color: var(--text-color);
+    font-weight: 500;
     padding: 0.75rem;
     background-color: transparent;
-    border-bottom: 1px solid var(--border-color);
-    opacity: 0.7;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.15); /* More subtle border */
+    opacity: 0.4;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+html:not([data-theme="dark"]) .coin-table th {
+    color: rgba(0, 0, 0, 0.4); /* Darker in light mode */
+}
+
+html[data-theme="dark"] .coin-table th {
+    color: rgba(255, 255, 255, 0.25); /* Lighter in dark mode */
 }
 
 .coin-table td {
@@ -168,7 +247,7 @@ main {
 .coin-table tbody tr {
     cursor: pointer;
     transition: background-color 0.2s ease;
-    height: 3.5rem;
+    height: auto;
 }
 
 .coin-table tbody tr:hover {
@@ -177,7 +256,8 @@ main {
 
 .coin-table tbody tr td {
     border-bottom: 1px solid var(--border-color);
-    line-height: 1.5;
+    line-height: 1.2;
+    padding: 0.75rem;
 }
 
 .coin-table tbody tr:last-child td {
@@ -199,13 +279,15 @@ main {
     text-overflow: ellipsis;
     max-width: 150px;
     color: var(--text-color);
+    line-height: 1.2;
 }
 
 .coin-symbol {
+    font-size: 0.7rem;
     color: var(--text-color);
     opacity: 0.7;
-    font-size: 0.7rem;
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .trending-list {
@@ -306,8 +388,8 @@ main {
 
 .nav-tabs .nav-link {
     color: var(--text-color);
-    border: none;
-    border-bottom: 2px solid transparent;
+    opacity: 0.6;
+    border: 1px solid transparent;
     padding: 6px 10px;
     font-weight: 500;
     transition: color 0.2s ease, border-color 0.2s ease;
@@ -315,31 +397,21 @@ main {
 }
 
 .nav-tabs .nav-link:hover {
-    color: var(--primary-color);
+    opacity: 0.8;
     border-color: transparent;
 }
 
 .nav-tabs .nav-link.active {
-    color: var(--primary-color);
-    background-color: transparent;
-    border-color: var(--primary-color);
+    color: var(--headline-color);
+    background-color: var(--card-bg);
+    border-color: var(--border-color) var(--border-color) var(--card-bg);
+    font-weight: 600;
+    opacity: 0.9;
 }
 
 /* Grid row spacing */
 .grid-row-spacing {
     margin-bottom: 2rem !important;
-}
-
-/* Additional dark mode fixes */
-[data-theme="dark"] {
-    --text-color: #f8f9fa;
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --card-gradient: linear-gradient(145deg, #1e1e1e, #252525);
-    --border-color: rgba(255, 255, 255, 0.05);
-    --hover-color: #2d2d2d;
-    --table-bg: #1e1e1e;
-    --table-header-bg: #252525;
 }
 
 [data-theme="dark"] .table {

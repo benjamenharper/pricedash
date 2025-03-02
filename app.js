@@ -29,11 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // localStorage.removeItem('apiCache');
     // apiCache = {};
     
+    // Initialize theme first to prevent flash of wrong theme
     initTheme();
     loadCachedData();
-    
-    // Fetch global market data first
-    fetchGlobalMarketData();
     
     // Load all categories at once for grid layout
     // Use a more reliable approach to ensure all categories load
@@ -142,6 +140,18 @@ function setRateLimitHit() {
 
 // Theme functions
 function initTheme() {
+    // Force dark theme by default, regardless of localStorage
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeIcon.classList.remove('bi-moon-fill');
+    themeIcon.classList.add('bi-sun-fill');
+    currentTheme = 'dark';
+    localStorage.setItem('theme', currentTheme);
+}
+
+function toggleTheme() {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('theme', currentTheme);
+    
     if (currentTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
         themeIcon.classList.remove('bi-moon-fill');
@@ -151,12 +161,6 @@ function initTheme() {
         themeIcon.classList.remove('bi-sun-fill');
         themeIcon.classList.add('bi-moon-fill');
     }
-}
-
-function toggleTheme() {
-    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-    localStorage.setItem('theme', currentTheme);
-    initTheme();
 }
 
 // Utility functions
@@ -271,24 +275,6 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
     }
     
     throw lastError;
-}
-
-async function fetchGlobalMarketData() {
-    try {
-        const data = await fetchWithRetry(`${API_BASE_URL}/global`);
-        updateGlobalMarketUI(data);
-    } catch (error) {
-        console.error('Error fetching global market data:', error);
-        document.getElementById('market-stats').innerHTML = '<div class="col-12 text-center text-danger">Failed to load market data. Please try again later.</div>';
-    }
-}
-
-function updateGlobalMarketUI(globalData) {
-    const data = globalData.data;
-    document.getElementById('total-market-cap').textContent = formatNumber(data.total_market_cap.usd);
-    document.getElementById('total-volume').textContent = formatNumber(data.total_volume.usd);
-    document.getElementById('btc-dominance').textContent = formatNumber(data.market_cap_percentage.btc, 1) + '%';
-    document.getElementById('active-coins').textContent = formatNumber(data.active_cryptocurrencies);
 }
 
 async function fetchCoinsByCategory(category) {
