@@ -1,0 +1,214 @@
+/* Category Page Specific Styles */
+
+/* Category Header */
+.category-header {
+    padding: 1.5rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.category-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--headline-color);
+    margin-bottom: 0.25rem;
+}
+
+.category-description {
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+.category-icon {
+    font-size: 2.5rem;
+    color: var(--headline-color);
+    opacity: 0.7;
+}
+
+/* Enhanced Stat Cards */
+.stat-card {
+    padding: 1rem;
+    border-radius: 10px;
+    background: var(--card-gradient);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.stat-card p {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    color: var(--text-color);
+}
+
+/* Enhanced Table Styles */
+.coin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.coin-table thead th {
+    background-color: var(--table-header-bg);
+    color: var(--headline-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.coin-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.coin-table tbody tr:hover {
+    background-color: var(--hover-color);
+    cursor: pointer;
+}
+
+.coin-table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-controls, .chart-controls {
+    width: 150px;
+}
+
+/* Chart Styles */
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.chart-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.chart-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* News Styles */
+.news-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.news-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 1rem;
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.news-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.news-content {
+    flex: 1;
+}
+
+.news-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.news-source {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.news-date {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.news-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+.news-placeholder i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .category-title {
+        font-size: 1.5rem;
+    }
+    
+    .category-icon {
+        font-size: 2rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .coin-table thead th,
+    .coin-table tbody td {
+        padding: 0.5rem;
+    }
+}
+
+/* Dark mode specific adjustments */
+[data-theme="dark"] .chart-placeholder,
+[data-theme="dark"] .news-placeholder {
+    opacity: 0.3;
+}
+
+/* Animation for loading states */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.6; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite ease-in-out;
+}
