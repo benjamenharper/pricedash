@@ -5,7 +5,7 @@ const CATEGORY_IDS = {
     crypto: '', // Default market
     ai: 'artificial-intelligence',
     meme: 'meme-token',
-    rwa: 'real-world-assets',
+    rwa: 'real-world-assets-rwa', // Updated to match current CoinGecko category ID
     gaming: 'gaming',
     stablecoins: 'stablecoins'
 };
@@ -19,61 +19,43 @@ const lastUpdatedEl = document.getElementById('last-updated');
 // State
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let apiCache = JSON.parse(localStorage.getItem('apiCache')) || {};
-let apiQueue = [];
-let isProcessingQueue = false;
-const API_RATE_LIMIT_DELAY = 2000; // 2 seconds between API calls
 let rateLimitHit = false;
 let lastRateLimitTime = 0;
 const RATE_LIMIT_COOLDOWN = 60 * 1000; // 1 minute cooldown after rate limit
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+    // Remove the cache clearing code after testing
+    // localStorage.removeItem('apiCache');
+    // apiCache = {};
+    
     initTheme();
     loadCachedData();
     
-    // Queue API calls with delays to avoid rate limiting
-    queueApiCall(() => fetchGlobalMarketData());
+    // Fetch global market data first
+    fetchGlobalMarketData();
     
     // Load all categories at once for grid layout
-    Object.keys(CATEGORY_IDS).forEach(category => {
-        queueApiCall(() => fetchCoinsByCategory(category));
+    // Use a more reliable approach to ensure all categories load
+    const categories = Object.keys(CATEGORY_IDS);
+    categories.forEach((category, index) => {
+        // Add increasing delays to avoid overwhelming the API
+        setTimeout(() => {
+            fetchCoinsByCategory(category);
+        }, index * 1000); // 1 second between each category
     });
     
-    queueApiCall(() => fetchTrendingCoins());
+    // Fetch trending coins after a delay
+    setTimeout(() => {
+        fetchTrendingCoins();
+    }, categories.length * 1000 + 1000);
     
     // Set last updated time
     updateLastUpdatedTime();
     
     // Initialize theme toggle
     themeIcon.addEventListener('click', toggleTheme);
-    
-    // Process the API queue
-    processApiQueue();
 });
-
-// API Queue functions
-function queueApiCall(apiCallFn) {
-    apiQueue.push(apiCallFn);
-    if (!isProcessingQueue) {
-        processApiQueue();
-    }
-}
-
-function processApiQueue() {
-    if (apiQueue.length === 0) {
-        isProcessingQueue = false;
-        return;
-    }
-    
-    isProcessingQueue = true;
-    const apiCall = apiQueue.shift();
-    
-    apiCall();
-    
-    setTimeout(() => {
-        processApiQueue();
-    }, API_RATE_LIMIT_DELAY);
-}
 
 // Cache functions
 function getCachedData(key, allowExpired = false) {
@@ -316,7 +298,26 @@ async function fetchCoinsByCategory(category) {
             ? `${API_BASE_URL}/coins/markets?vs_currency=usd&category=${categoryId}&order=market_cap_desc&per_page=${COIN_COUNT}&page=1&sparkline=false&price_change_percentage=24h`
             : `${API_BASE_URL}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${COIN_COUNT}&page=1&sparkline=false&price_change_percentage=24h`;
         
-        const data = await fetchWithRetry(url);
+        console.log(`Fetching ${category} coins with URL: ${url}`);
+        
+        let data;
+        try {
+            data = await fetchWithRetry(url);
+        } catch (fetchError) {
+            // Special handling for RWA category
+            if (category === 'rwa' && fetchError) {
+                console.log('Attempting fallback for RWA category...');
+                // Try an alternative approach - fetch specific RWA coins by ID
+                const rwaCoins = ['tether-gold', 'paxos-gold', 'aave-usdc', 'maker', 'compound-usdt', 'ondo-finance', 'maple'];
+                const fallbackUrl = `${API_BASE_URL}/coins/markets?vs_currency=usd&ids=${rwaCoins.join(',')}&order=market_cap_desc&per_page=${COIN_COUNT}&page=1&sparkline=false&price_change_percentage=24h`;
+                data = await fetchWithRetry(fallbackUrl);
+            } else {
+                throw fetchError;
+            }
+        }
+        
+        console.log(`${category} data received:`, data.length > 0 ? `${data.length} coins` : 'No coins found');
+        
         setCachedData(`category_${category}`, data);
         updateCoinTableUI(category, data);
     } catch (error) {
