@@ -1,0 +1,309 @@
+/* Coin Detail Page Styles */
+
+.coin-header {
+    padding: 1rem 0;
+}
+
+.coin-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.coin-symbol {
+    font-size: 1rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    text-transform: uppercase;
+}
+
+.coin-rank {
+    font-size: 0.875rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    padding: 0.25rem 0.5rem;
+    background-color: rgba(76, 110, 245, 0.1);
+    border-radius: 4px;
+}
+
+.coin-price {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.price-change {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.price-change.positive {
+    color: var(--success-color);
+}
+
+.price-change.negative {
+    color: var(--danger-color);
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 500px !important;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.chart-layout {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.card-header {
+    padding: 0.75rem 1rem;
+}
+
+.chart-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-left: 1rem;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.time-period-btn.active {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+.price-change-card {
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--card-gradient);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    height: 100%;
+}
+
+.price-change-card h5 {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.price-change-card p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.price-change-card p.positive {
+    color: var(--success-color);
+}
+
+.price-change-card p.negative {
+    color: var(--danger-color);
+}
+
+.social-stats {
+    margin-bottom: 1.5rem;
+}
+
+.social-stats-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.social-stats-item:last-child {
+    border-bottom: none;
+}
+
+.loading-placeholder {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.coin-description {
+    line-height: 1.6;
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+.trust-score {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.trust-score.high {
+    background-color: var(--positive-color);
+}
+
+.trust-score.medium {
+    background-color: #ffc107;
+}
+
+.trust-score.low {
+    background-color: var(--negative-color);
+}
+
+.chart-label {
+    text-align: center;
+    font-weight: 600;
+    margin: 5px 0;
+    padding: 0 10px;
+    color: var(--text-color);
+}
+
+.layout-button {
+    padding: 0.25rem 0.5rem;
+}
+
+.layout-button i {
+    font-size: 1rem;
+    color: #6c757d; /* Use grey color for icons */
+}
+
+.layout-button.active {
+    background-color: #6c757d; /* Use grey color instead of primary color */
+    color: white;
+    border-color: #6c757d; /* Match border color */
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.card-body.p-0 {
+    padding: 0 !important;
+}
+
+/* Multi-chart layout styles */
+#multi-chart-layout .row {
+    margin: 0;
+}
+
+#multi-chart-layout .chart-container {
+    height: 500px !important;
+}
+
+/* Multi-chart layout responsive adjustments */
+@media (max-width: 992px) {
+    #multi-chart-layout .row {
+        flex-direction: column;
+    }
+    
+    #multi-chart-layout .col-md-4 {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    #multi-chart-layout .chart-container {
+        height: 350px !important;
+    }
+}
+
+/* Dark mode table styles */
+[data-theme="dark"] .table {
+    color: var(--text-color);
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .table thead th {
+    border-bottom-color: var(--border-color);
+    background-color: var(--card-header-bg);
+}
+
+[data-theme="dark"] .table td, 
+[data-theme="dark"] .table th {
+    border-top-color: var(--border-color);
+}
+
+/* Trust score colors */
+.trust-score {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.trust-score.green {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.trust-score.yellow {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.trust-score.red {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+/* Tabs styling */
+.nav-tabs {
+    border-bottom: none;
+}
+
+.nav-tabs .nav-link {
+    color: var(--text-color);
+    opacity: 0.7;
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.nav-tabs .nav-link:hover {
+    opacity: 1;
+    border: none;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--text-color);
+    opacity: 1;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .coin-title {
+        font-size: 1.5rem;
+    }
+    
+    .coin-price {
+        font-size: 1.2rem;
+    }
+    
+    .chart-container {
+        height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .coin-header {
+        flex-direction: column;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}

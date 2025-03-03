@@ -298,9 +298,6 @@ async function fetchCategoryCoins() {
         // Only show error if we don't have cached data
         if (!cachedData) {
             showError();
-        } else {
-            // Show a non-intrusive error message that we're using cached data
-            showCacheNotification();
         }
         
         return cachedData || [];
@@ -382,11 +379,6 @@ async function fetchPriceHistory(coinIds) {
             const allResults = [...cachedResults, ...newResults];
             const allCoinIds = [...cachedCoinIds, ...newCoinIds];
             updatePriceChart(allCoinIds, allResults);
-        }
-        
-        // If any fetches failed but we have cached data, show notification
-        if (newResults.length < coinsToFetch.length && cachedResults.length > 0) {
-            showCacheNotification();
         }
         
     } catch (error) {
@@ -624,144 +616,9 @@ function showError() {
     });
 }
 
-function showCacheNotification() {
-    // Create a notification element if it doesn't exist
-    if (!document.getElementById('cache-notification')) {
-        const notification = document.createElement('div');
-        notification.id = 'cache-notification';
-        notification.className = 'alert alert-warning alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
-        notification.innerHTML = `
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            Using cached data. Couldn't refresh from server.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-        document.body.appendChild(notification);
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(notification);
-            bsAlert.close();
-        }, 5000);
-    }
-}
-
 // Expose necessary functions to global scope for event handlers
 window.fetchCategoryCoins = fetchCategoryCoins;
 window.showCoinDetails = function(coinId) {
-    // This is a placeholder - in a real implementation, this would show a modal with coin details
-    console.log("Show details for coin:", coinId);
-    
-    // Find the coin in our data
-    const coin = categoryCoins.find(c => c.id === coinId);
-    if (!coin) return;
-    
-    // Get the modal elements
-    const modal = document.getElementById("coinModal");
-    const modalTitle = document.getElementById("coinModalLabel");
-    const modalBody = document.getElementById("coin-modal-body");
-    
-    if (!modal || !modalTitle || !modalBody) return;
-    
-    // Update modal title
-    modalTitle.innerHTML = `
-        <img src="${coin.image}" alt="${coin.name}" class="me-2" style="width: 24px; height: 24px;">
-        ${coin.name} <span class="text-muted">(${coin.symbol.toUpperCase()})</span>
-    `;
-    
-    // Update modal body with loading indicator
-    modalBody.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
-    // Show the modal
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
-    
-    // Fetch additional coin details
-    fetch(`${API_BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=true&developer_data=false&sparkline=false`)
-        .then(response => response.json())
-        .then(data => {
-            // Format market data
-            const marketCap = formatNumber(data.market_data.market_cap.usd);
-            const volume = formatNumber(data.market_data.total_volume.usd);
-            const circulatingSupply = formatNumber(data.market_data.circulating_supply);
-            const totalSupply = data.market_data.total_supply ? formatNumber(data.market_data.total_supply) : "∞";
-            
-            // Format price data
-            const currentPrice = formatPrice(data.market_data.current_price.usd);
-            const priceChange24h = formatPercentage(data.market_data.price_change_percentage_24h);
-            const priceChange7d = formatPercentage(data.market_data.price_change_percentage_7d);
-            const priceChange30d = formatPercentage(data.market_data.price_change_percentage_30d);
-            
-            // Build modal content
-            modalBody.innerHTML = `
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Price:</span>
-                            <span class="fw-bold">${currentPrice}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>24h Change:</span>
-                            <span>${priceChange24h}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>7d Change:</span>
-                            <span>${priceChange7d}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>30d Change:</span>
-                            <span>${priceChange30d}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Market Cap:</span>
-                            <span class="fw-bold">${marketCap}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>24h Volume:</span>
-                            <span>${volume}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Circulating Supply:</span>
-                            <span>${circulatingSupply} ${data.symbol.toUpperCase()}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Supply:</span>
-                            <span>${totalSupply} ${data.symbol.toUpperCase()}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <h5>About ${data.name}</h5>
-                    <div class="coin-description">${data.description.en ? data.description.en.slice(0, 300) + "..." : "No description available."}</div>
-                </div>
-                
-                <div class="mb-4">
-                    <h5>Links</h5>
-                    <div class="d-flex flex-wrap gap-2">
-                        ${data.links.homepage[0] ? `<a href="${data.links.homepage[0]}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-globe"></i> Website</a>` : ""}
-                        ${data.links.blockchain_site[0] ? `<a href="${data.links.blockchain_site[0]}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-box"></i> Explorer</a>` : ""}
-                        ${data.links.official_forum_url[0] ? `<a href="${data.links.official_forum_url[0]}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-chat-dots"></i> Forum</a>` : ""}
-                        ${data.links.subreddit_url ? `<a href="${data.links.subreddit_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-reddit"></i> Reddit</a>` : ""}
-                        ${data.links.twitter_screen_name ? `<a href="https://twitter.com/${data.links.twitter_screen_name}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-twitter"></i> Twitter</a>` : ""}
-                    </div>
-                </div>
-            `;
-        })
-        .catch(error => {
-            console.error("Error fetching coin details:", error);
-            modalBody.innerHTML = `
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle text-warning fs-1 d-block mb-3"></i>
-                    <p>Failed to load coin details. Please try again later.</p>
-                </div>
-            `;
-        });
+    // Redirect to the coin detail page
+    window.location.href = `coin.html?id=${coinId}`;
 };

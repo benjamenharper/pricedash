@@ -320,9 +320,6 @@ async function fetchCoinsByCategory(category) {
         if (!cachedData) {
             const tableBodyId = `${category}-table-body`;
             document.getElementById(tableBodyId).innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load data. Please try again later.</td></tr>';
-        } else {
-            // We're already showing cached data, so just show a non-intrusive notification
-            showCacheNotification();
         }
     }
 }
@@ -435,73 +432,9 @@ function updateTrendingCoinsUI(trendingData) {
 }
 
 // Coin details modal
-async function showCoinDetails(coinId) {
-    const modalBody = document.getElementById('coin-modal-body');
-    
-    // Show loading spinner
-    modalBody.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-    
-    // Show the modal
-    const coinModal = new bootstrap.Modal(document.getElementById('coinModal'));
-    coinModal.show();
-    
-    try {
-        const data = await fetchWithRetry(`${API_BASE_URL}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false`);
-        
-        // Format the modal content
-        modalBody.innerHTML = `
-            <div class="coin-detail-header">
-                <img src="${data.image.small}" alt="${data.name}">
-                <div>
-                    <div class="coin-detail-name">${data.name} 
-                        ${data.market_cap_rank ? `<span class="market-cap-rank">#${data.market_cap_rank}</span>` : ''}
-                    </div>
-                    <div class="coin-detail-symbol">${data.symbol.toUpperCase()}</div>
-                </div>
-            </div>
-            
-            <div class="coin-detail-price">
-                ${formatPrice(data.market_data.current_price.usd)}
-                ${formatPercentage(data.market_data.price_change_percentage_24h)}
-            </div>
-            
-            <div class="coin-detail-stats">
-                <div class="coin-detail-stat">
-                    <h4>Market Cap</h4>
-                    <p>${formatNumber(data.market_data.market_cap.usd)}</p>
-                </div>
-                <div class="coin-detail-stat">
-                    <h4>24h Volume</h4>
-                    <p>${formatNumber(data.market_data.total_volume.usd)}</p>
-                </div>
-                <div class="coin-detail-stat">
-                    <h4>24h High</h4>
-                    <p>${formatPrice(data.market_data.high_24h.usd)}</p>
-                </div>
-                <div class="coin-detail-stat">
-                    <h4>24h Low</h4>
-                    <p>${formatPrice(data.market_data.low_24h.usd)}</p>
-                </div>
-            </div>
-            
-            <div class="coin-detail-links">
-                ${data.links.homepage[0] ? `<a href="${data.links.homepage[0]}" target="_blank" class="coin-detail-link">Website</a>` : ''}
-                ${data.links.blockchain_site[0] ? `<a href="${data.links.blockchain_site[0]}" target="_blank" class="coin-detail-link">Explorer</a>` : ''}
-                ${data.links.official_forum_url[0] ? `<a href="${data.links.official_forum_url[0]}" target="_blank" class="coin-detail-link">Forum</a>` : ''}
-                ${data.links.subreddit_url ? `<a href="${data.links.subreddit_url}" target="_blank" class="coin-detail-link">Reddit</a>` : ''}
-            </div>
-        `;
-        
-    } catch (error) {
-        console.error('Error fetching coin details:', error);
-        modalBody.innerHTML = '<div class="text-center text-danger">Failed to load coin details. Please try again later.</div>';
-    }
+function showCoinDetails(coinId) {
+    // Redirect to the coin detail page
+    window.location.href = `coin.html?id=${coinId}`;
 }
 
 function loadCachedData() {
@@ -521,27 +454,5 @@ function loadCachedData() {
     const trendingData = getCachedData('trending');
     if (trendingData) {
         updateTrendingCoinsUI(trendingData);
-    }
-}
-
-function showCacheNotification() {
-    // Create a notification element if it doesn't exist
-    if (!document.getElementById('cache-notification')) {
-        const notification = document.createElement('div');
-        notification.id = 'cache-notification';
-        notification.className = 'alert alert-warning alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
-        notification.style.zIndex = "1050";
-        notification.innerHTML = `
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            Using cached data. Couldn't refresh from server.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-        document.body.appendChild(notification);
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            const bsAlert = bootstrap.Alert.getInstance(notification) || new bootstrap.Alert(notification);
-            bsAlert.close();
-        }, 5000);
     }
 }
