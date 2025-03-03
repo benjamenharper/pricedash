@@ -278,6 +278,13 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
 }
 
 async function fetchCoinsByCategory(category) {
+    // First check if we have cached data and display it immediately
+    const cachedData = getCachedData(`category_${category}`, true); // Allow expired data
+    if (cachedData) {
+        console.log(`Using cached data for ${category} initial display`);
+        updateCoinTableUI(category, cachedData);
+    }
+    
     try {
         const categoryId = CATEGORY_IDS[category];
         const url = categoryId 
@@ -308,8 +315,15 @@ async function fetchCoinsByCategory(category) {
         updateCoinTableUI(category, data);
     } catch (error) {
         console.error(`Error fetching ${category} coins:`, error);
-        const tableBodyId = `${category}-table-body`;
-        document.getElementById(tableBodyId).innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load data. Please try again later.</td></tr>';
+        
+        // Only show error if we don't have cached data
+        if (!cachedData) {
+            const tableBodyId = `${category}-table-body`;
+            document.getElementById(tableBodyId).innerHTML = '<tr><td colspan="3" class="text-center text-danger">Failed to load data. Please try again later.</td></tr>';
+        } else {
+            // We're already showing cached data, so just show a non-intrusive notification
+            showCacheNotification();
+        }
     }
 }
 
@@ -507,5 +521,27 @@ function loadCachedData() {
     const trendingData = getCachedData('trending');
     if (trendingData) {
         updateTrendingCoinsUI(trendingData);
+    }
+}
+
+function showCacheNotification() {
+    // Create a notification element if it doesn't exist
+    if (!document.getElementById('cache-notification')) {
+        const notification = document.createElement('div');
+        notification.id = 'cache-notification';
+        notification.className = 'alert alert-warning alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
+        notification.style.zIndex = "1050";
+        notification.innerHTML = `
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Using cached data. Couldn't refresh from server.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.body.appendChild(notification);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            const bsAlert = bootstrap.Alert.getInstance(notification) || new bootstrap.Alert(notification);
+            bsAlert.close();
+        }, 5000);
     }
 }

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Coins by Market Cap | TradingOnramp</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/trofavicon.png">
+    <link rel="apple-touch-icon" href="images/trofavicon.png">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4KQ07F39B1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-4KQ07F39B1');
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="category.css">
+</head>
+<body>
+    <div class="container-fluid compact-container">
+        <header>
+            <div class="container-fluid d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="index.html">
+                        <img src="images/tradingonramp-logo.png" alt="TradingOnramp Logo" height="40">
+                    </a>
+                </div>
+                <div class="d-flex">
+                    <a href="index.html" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-grid"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="container-fluid">
+            <!-- Category Header -->
+            <div class="category-header">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="category-icon me-3">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div>
+                            <h1 class="category-title">Top Coins by Market Cap</h1>
+                            <p class="category-description">The leading cryptocurrencies ranked by market capitalization</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Overview -->
+            <div class="row mb-4">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <h3>Total Market Cap</h3>
+                        <p id="ai-market-cap">Loading...</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <h3>24h Volume</h3>
+                        <p id="ai-volume">Loading...</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <h3>Average 24h Change</h3>
+                        <p id="ai-avg-change">Loading...</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="stat-card">
+                        <h3>Top Performer</h3>
+                        <p id="ai-top-performer">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Coin Table -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0">Top 50 Cryptocurrencies</h3>
+                            <div class="table-controls">
+                                <select id="sort-select" class="form-select form-select-sm bg-dark text-light border-secondary">
+                                    <option value="market_cap" selected>Market Cap</option>
+                                    <option value="price_change">24h Change</option>
+                                    <option value="volume">Volume</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover coin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col">Coin</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">24h %</th>
+                                            <th scope="col">7d %</th>
+                                            <th scope="col">Market Cap</th>
+                                            <th scope="col">Volume (24h)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ai-table-body">
+                                        <tr>
+                                            <td colspan="7" class="text-center">Loading data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Chart Section -->
+            <div class="row mb-4" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0">Price Comparison</h3>
+                            <div class="chart-controls">
+                                <select id="timeframe-select" class="form-select form-select-sm">
+                                    <option value="1d">1 Day</option>
+                                    <option value="7d" selected>7 Days</option>
+                                    <option value="30d">30 Days</option>
+                                    <option value="90d">90 Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="price-chart" class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="bi bi-graph-up"></i>
+                                    <p>Select coins to compare</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News & Insights -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title mb-0">Latest Crypto News</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="ai-news" class="news-container">
+                                <div class="news-placeholder text-center py-4">
+                                    <i class="bi bi-newspaper"></i>
+                                    <p>Loading latest news...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-4">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <p class="small text-muted mb-0">
+                        <span id="last-updated">Last updated: Loading...</span>
+                    </p>
+                </div>
+                <div class="theme-toggle">
+                    <button id="theme-toggle" class="btn btn-sm btn-outline-secondary">
+                        <i id="theme-icon" class="bi bi-sun-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Coin Detail Modal -->
+    <div class="modal fade" id="coinModal" tabindex="-1" aria-labelledby="coinModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="coinModalLabel">Coin Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="coin-modal-body">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="category.js"></script>
+</body>
+</html>

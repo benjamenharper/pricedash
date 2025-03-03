@@ -160,6 +160,13 @@ main {
     opacity: 0.9;
 }
 
+.card-title .bi {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--headline-color);
+    opacity: 0.8;
+}
+
 .stat-card {
     padding: 0.75rem;
     border-radius: 8px;
